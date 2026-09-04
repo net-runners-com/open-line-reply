@@ -1,0 +1,22 @@
+{
+  "name": "open-line-reply",
+  "version": "0.1.0",
+  "description": "LINE Messaging API の応答メッセージ(reply)だけを扱う、依存ゼロの軽量フレームワーク。reply は無料枠を消費しない。",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["line", "line-bot", "messaging-api", "reply", "flex", "cloudflare-workers", "webhook"],
+  "exports": {
+    ".": "./src/index.ts",
+    "./cloudflare": "./src/cloudflare.ts",
+    "./messages": "./src/messages.ts"
+  },
+  "files": ["src", "README.md", "LICENSE"],
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}

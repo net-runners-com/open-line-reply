@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "open-line-reply-example",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true }
+  // secrets: wrangler secret put LINE_CHANNEL_SECRET / LINE_CHANNEL_ACCESS_TOKEN
+}
