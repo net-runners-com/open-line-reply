@@ -164,12 +164,15 @@ text("どうぞ", {
 **push は使わない**ので、繋いでも無料枠は増えない = 減らない（line-harness の
 シナリオ遅延・一斉配信は原理的に push のまま。無料化できるのは reply 可能な所だけ）。
 
+> **自分の LINE 公式アカウントを繋ぐ手順**（インストール済みの PC で、コマンドを
+> 貼るだけで完結するオンボーディング）は [ONBOARDING.ja.md](./ONBOARDING.ja.md) を参照。
+
 ### インストール
 
 `apps/worker` のワークスペースに追加（pnpm monorepo）:
 
 ```bash
-pnpm --filter worker add open-line-reply
+pnpm --filter worker add open-line-reply@github:net-runners-com/open-line-reply
 ```
 
 ### 最小の繋ぎ込み（既存 webhook の match ループを置換）
