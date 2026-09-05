@@ -157,6 +157,60 @@ text("どうぞ", {
 });
 ```
 
+## line-harness と繋ぐ
+
+[line-harness](https://github.com/net-runners-com) (`@line-crm`) の `auto_replies`
+テーブルを、この reply エンジンに載せるアダプタ (`open-line-reply/line-harness`)。
+**push は使わない**ので、繋いでも無料枠は増えない = 減らない（line-harness の
+シナリオ遅延・一斉配信は原理的に push のまま。無料化できるのは reply 可能な所だけ）。
+
+### インストール
+
+`apps/worker` のワークスペースに追加（pnpm monorepo）:
+
+```bash
+pnpm --filter worker add open-line-reply
+```
+
+### 最小の繋ぎ込み（既存 webhook の match ループを置換）
+
+`apps/worker/src/routes/webhook.ts` の 2 つの auto_replies マッチループ
+(postback / text) を `matchAutoReply` に置き換えるだけ。silent 判定・ログ・
+replyToken 管理は既存のまま残せる（挙動維持）:
+
+```ts
+import { matchAutoReply, isSilent } from "open-line-reply/line-harness";
+
+// autoReplies.results は既存の SELECT * FROM auto_replies ... の結果
+const hit = matchAutoReply(incomingText, autoReplies.results);
+if (hit) {
+  if (isSilent(hit)) { matched = true; }
+  else {
+    const content = expandVariables(hit.response_content, friend, workerUrl);
+    const msg = buildMessage(hit.response_type, content);
+    await lineClient.replyMessage(event.replyToken, [msg]); // 無料
+    // ...既存の messages_log INSERT / matched=true ...
+  }
+}
+```
+
+### 新規フローを宣言的に組む（router）
+
+```ts
+import { autoReplyRouter } from "open-line-reply/line-harness";
+
+const router = autoReplyRouter(autoReplies.results, {
+  build: (type, content) => buildMessage(type, expandVariables(content, friend, workerUrl)),
+  onDefault: () => undefined, // マッチ無しは reply しない(=unread へ)
+});
+const messages = await router.dispatch(event as any); // @line-crm の event 形と互換
+if (messages.length) await lineClient.replyMessage(event.replyToken, messages);
+```
+
+`matchAutoReply(input, rows)` は line-harness と同じ規則（exact=完全一致 /
+contains=includes、行順で先頭勝ち、is_active=1 のみ）。`autoReplyRouter` は
+contains を正規表現エスケープして安全に扱う。
+
 ## API
 
 | export | 説明 |
@@ -164,6 +218,7 @@ text("どうぞ", {
 | `createWebhookHandler(config)` | 生body+署名 → 検証 → 各イベントに reply。`config: { channelSecret, channelAccessToken, router, swallowErrors?, onError? }` |
 | `cloudflareHandler(config)` | Workers の `fetch` ハンドラを返す（`open-line-reply/cloudflare`） |
 | `nodeHandler(config)` / `listen(config, port)` | Node.js の `(req,res)` ハンドラ / サーバ起動（`open-line-reply/node`） |
+| `matchAutoReply(input, rows)` / `autoReplyRouter(rows, opts)` | line-harness の `auto_replies` 連携（`open-line-reply/line-harness`） |
 | `ReplyRouter` | `.onText` `.onPostback` `.onFollow` `.onJoin` `.onDefault` `.dispatch(event)` |
 | `createReplyClient(token)` | `reply(replyToken, messages)` を返す低レベル関数 |
 | `verifySignature(rawBody, signature, secret)` | 署名検証（Promise<boolean>） |

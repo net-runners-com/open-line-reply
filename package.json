@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./cloudflare": "./src/cloudflare.ts",
     "./node": "./src/node.ts",
+    "./line-harness": "./src/line-harness.ts",
     "./messages": "./src/messages.ts"
   },
   "files": ["src", "README.md", "LICENSE"],
