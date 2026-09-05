@@ -11,6 +11,12 @@ push / broadcast / multicast / narrowcast は課金対象。
 
 このライブラリは push を持たない。「無料の範囲だけで LINE bot を組む」ことに割り切っている。
 
+> **補足（誤解しやすい点）**: 「無料 = replyToken 必須」ではない。無料経路は2つある。
+> ① Messaging API の **reply**（replyToken 依存・相手のアクション直後のみ・受け身）＝このパッケージ。
+> ② chat.line.biz の **運用者送信**（**replyToken 不要**・いつでも能動的に・ただし過去に話しかけてきた人限定）。
+> ②は別ツール（Cookie 直叩きの operator API）で、このパッケージの対象外。
+> 「無料で好きなタイミングに送りたい」なら②、「相手の反応に自動で返したい」なら①。
+
 ### reply の制約（LINE 側の仕様）
 
 - `replyToken` は 1 イベントに 1 個・使い切り・発行から **約 1 分で失効**
