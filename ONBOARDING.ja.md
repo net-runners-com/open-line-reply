@@ -103,8 +103,19 @@ LINE Developers → Messaging API 設定:
 
 1. **Webhook URL** に `${WORKER_URL}/webhook` を設定 → 「検証」で 200 を確認
 2. **Webhook の利用** を ON
-3. LINE Official Account Manager → 応答設定で **応答メッセージを OFF / Webhook を ON**
-   （自動応答が Webhook を上書きしないように）
+
+LINE Official Account Manager → 設定 → 応答設定（3つは独立）:
+
+| 設定 | 推奨 | 理由 |
+|---|---|---|
+| 応答モード | **チャットのまま**（Bot に変えない） | 運用者チャット（chat.line.biz / OA Manager アプリ）を使い続けるため。Bot に変えると運用者チャットが使えなくなる |
+| Webhook | **ON** | line-harness の無料 reply はここ経由。チャットモードでも ON にできる |
+| 応答メッセージ | **OFF** | LINE 内蔵の定型自動応答を止めるだけ。ON のままだと Webhook 返信と**二重返信**になる |
+
+> **注意**: 「応答メッセージ OFF」は内蔵の定型返信を止めるだけで、運用者チャットや
+> Webhook 返信は止まらない。**応答モードは「チャット」のまま**にすること
+> （Bot に切り替えると chat.line.biz 経由の運用者チャットが `not_chat_mode_bot` で
+> 使えなくなる）。チャットモード＋Webhook ON は共存できる。
 
 複数アカウントでも Webhook URL は全員同じ `${WORKER_URL}/webhook` で OK。
 worker が署名でアカウントを自動判別する。
