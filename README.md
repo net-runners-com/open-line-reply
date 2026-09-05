@@ -22,7 +22,7 @@ push / broadcast / multicast / narrowcast は課金対象。
 
 ## 特徴
 
-- 依存ゼロ。Web Crypto を使うので **Cloudflare Workers / Deno / Bun / Node 18+** で動く
+- 依存ゼロ。Web Crypto を使うので **Cloudflare Workers / Deno / Bun / Node 20+**（Windows・macOS・Linux）で動く。OS 依存コードなし
 - Webhook 署名検証（`X-Line-Signature`）込み
 - キーワード / 正規表現 / postback / follow / join のルーター
 - **全メッセージタイプのビルダー**: text / textV2(emoji) / sticker / image / video / audio / location / imagemap / template(buttons, confirm, carousel, image_carousel) / flex
@@ -85,6 +85,45 @@ LINE Developers コンソールで Webhook URL に `https://<worker>/webhook` �
 
 完全な例は [`examples/cloudflare-worker`](./examples/cloudflare-worker) を参照。
 
+## 使い方（素の Node.js / Windows・macOS・Linux）
+
+Bun も Cloudflare も使わず、Node.js だけで webhook サーバを立てられる（**Node 20+ 推奨**。
+Node 18 でも `node:crypto` の webcrypto を自動フォールバックする）。
+
+```ts
+import { listen, ReplyRouter, text } from "open-line-reply/node";
+
+const router = new ReplyRouter().onText("hi", () => text("hello"));
+
+listen(
+  {
+    router,
+    channelSecret: process.env.LINE_CHANNEL_SECRET,
+    channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
+  },
+  3000, // port
+);
+```
+
+`node:http` / Express 互換の `(req, res)` ハンドラだけ欲しい場合は `nodeHandler(config)`。
+
+### Windows での起動（PowerShell）
+
+```powershell
+cd examples\node-server
+npm install
+$env:LINE_CHANNEL_SECRET="..."
+$env:LINE_CHANNEL_ACCESS_TOKEN="..."
+node index.mjs
+```
+
+コマンドプロンプト (cmd) の場合は `set LINE_CHANNEL_SECRET=...`。
+外部公開は ngrok / Cloudflare Tunnel 等で `http://localhost:3000/webhook` を公開し、
+その URL を LINE Developers の Webhook に設定する。
+
+> コア・アダプタとも OS 依存コード（パス区切り・シェル呼び出し等）は無いので、
+> Windows / macOS / Linux で同じコードが動く。
+
 ## メッセージビルダー一覧
 
 ```ts
@@ -124,6 +163,7 @@ text("どうぞ", {
 |---|---|
 | `createWebhookHandler(config)` | 生body+署名 → 検証 → 各イベントに reply。`config: { channelSecret, channelAccessToken, router, swallowErrors?, onError? }` |
 | `cloudflareHandler(config)` | Workers の `fetch` ハンドラを返す（`open-line-reply/cloudflare`） |
+| `nodeHandler(config)` / `listen(config, port)` | Node.js の `(req,res)` ハンドラ / サーバ起動（`open-line-reply/node`） |
 | `ReplyRouter` | `.onText` `.onPostback` `.onFollow` `.onJoin` `.onDefault` `.dispatch(event)` |
 | `createReplyClient(token)` | `reply(replyToken, messages)` を返す低レベル関数 |
 | `verifySignature(rawBody, signature, secret)` | 署名検証（Promise<boolean>） |

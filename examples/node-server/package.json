@@ -1,0 +1,11 @@
+{
+  "name": "open-line-reply-node-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "open-line-reply": "file:../.."
+  }
+}
